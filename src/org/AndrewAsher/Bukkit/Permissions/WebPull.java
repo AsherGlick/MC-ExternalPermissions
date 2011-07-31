@@ -64,38 +64,4 @@ public class WebPull extends TimerTask {
 
 	}
 	
-	public void test()
-	{
-		try {
-			URL remote = new URL(URL);
-			URLConnection remoteFile = remote.openConnection();
-			BufferedReader in = new BufferedReader (new InputStreamReader(remoteFile.getInputStream()));
-			
-			String input = "";
-			String inputLine;
-			
-			while ((inputLine = in.readLine()) != null)
-			{
-				input += inputLine;
-			}
-			
-			if (!input.equals(last))
-			{
-				last = input;
-				plugin.updatePermissions(input);
-			}
-		} 
-		catch (MalformedURLException e) 
-		{
-			
-			e.printStackTrace();
-		} 
-		catch (IOException e) 
-		{
-			e.printStackTrace();
-		}
-	}
-	
-
-
 }

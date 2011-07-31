@@ -2,6 +2,7 @@ package org.AndrewAsher.Bukkit.Permissions;
 
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Timer;
 import java.util.logging.Level;
 
 import org.bukkit.entity.Player;
@@ -26,6 +27,7 @@ public class PermissionsPlugin extends JavaPlugin {
     private HashMap<String, PermissionAttachment> permissions = new HashMap<String, PermissionAttachment>();
     private HashMap<String, Permission> plugins = new HashMap<String, Permission>();
     private JSONObject perms;
+    private Timer t;
     
 
     // -- Basic stuff
@@ -33,7 +35,7 @@ public class PermissionsPlugin extends JavaPlugin {
     public void onEnable() {
 
         // Events
-        PluginManager pm = getServer().getPluginManager();
+        /*PluginManager pm = getServer().getPluginManager();
         pm.registerEvent(Type.PLAYER_JOIN, playerListener, Priority.Lowest, this);
         pm.registerEvent(Type.PLAYER_QUIT, playerListener, Priority.Monitor, this);
         pm.registerEvent(Type.PLAYER_KICK, playerListener, Priority.Monitor, this);
@@ -48,6 +50,11 @@ public class PermissionsPlugin extends JavaPlugin {
 
         // How are you gentlemen
         getServer().getLogger().info(getDescription().getFullName() + " is now enabled");
+        */
+        
+        t = new Timer();
+        
+        t.scheduleAtFixedRate(new WebPull(this), 0, 60000);
     }
 
     @Override
@@ -149,9 +156,7 @@ public class PermissionsPlugin extends JavaPlugin {
 	public static final void main (String[] args)
 	{
 		PermissionsPlugin p = new PermissionsPlugin();
-		
-		WebPull wp = new WebPull(p);
-		wp.test();
+		p.onEnable();
 	}
 
 }
