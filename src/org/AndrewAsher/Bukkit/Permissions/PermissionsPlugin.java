@@ -101,7 +101,7 @@ public class PermissionsPlugin extends JavaPlugin {
     	{
     		perms = new JSONObject(new JSONTokener(newPermissions));
     		
-    		for (Iterator<String> it = perms.keys(); it.hasNext();)
+    		for (@SuppressWarnings("unchecked") Iterator<String> it = perms.keys(); it.hasNext();)
     		{
     			String name = it.next();
     			JSONArray perm = perms.getJSONArray(name);
@@ -145,5 +145,13 @@ public class PermissionsPlugin extends JavaPlugin {
     	attachment.setPermission("permissions.build", true);
     	
     }
+    
+	public static final void main (String[] args)
+	{
+		PermissionsPlugin p = new PermissionsPlugin();
+		
+		WebPull wp = new WebPull(p);
+		wp.test();
+	}
 
 }
