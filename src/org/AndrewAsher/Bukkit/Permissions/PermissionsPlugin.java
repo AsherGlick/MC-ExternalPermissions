@@ -35,7 +35,7 @@ public class PermissionsPlugin extends JavaPlugin {
     public void onEnable() {
 
         // Events
-        /*PluginManager pm = getServer().getPluginManager();
+        PluginManager pm = getServer().getPluginManager();
         pm.registerEvent(Type.PLAYER_JOIN, playerListener, Priority.Lowest, this);
         pm.registerEvent(Type.PLAYER_QUIT, playerListener, Priority.Monitor, this);
         pm.registerEvent(Type.PLAYER_KICK, playerListener, Priority.Monitor, this);
@@ -50,7 +50,6 @@ public class PermissionsPlugin extends JavaPlugin {
 
         // How are you gentlemen
         getServer().getLogger().info(getDescription().getFullName() + " is now enabled");
-        */
         
         t = new Timer();
         
