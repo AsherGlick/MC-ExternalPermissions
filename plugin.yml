@@ -1,0 +1,3 @@
+name: PermissionsPlugin
+version: 0.1b
+main: org.AndrewAsher.Bukkit.Permissions.PermissionsPlugin

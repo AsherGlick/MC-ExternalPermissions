@@ -1,5 +1,7 @@
 package org.AndrewAsher.Bukkit.Permissions;
 
+import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -36,11 +38,20 @@ public class PermissionsPlugin extends JavaPlugin {
     @Override
     public void onEnable() {
     	
+    	// Write some default configuration
+        if (!new File(getDataFolder(), "config.yml").exists()) {
+            getServer().getLogger().info("Generating default configuration");
+            writeDefaultConfiguration();
+        }
+    	
+    	
     	//generate groups from config.yml
     	createGroups();
     	
+    	getServer().getLogger().info(groups.get("default").toString());
+    	
     	//used to pull permissions from web server
-        t = new Timer();
+       /* t = new Timer();
         
         t.scheduleAtFixedRate(new WebPull(this), 0, 60000);
 
@@ -61,7 +72,7 @@ public class PermissionsPlugin extends JavaPlugin {
         // How are you gentlemen
         getServer().getLogger().info(getDescription().getFullName() + " is now enabled");
         
-        
+        */
     	
     }
 
@@ -193,5 +204,25 @@ public class PermissionsPlugin extends JavaPlugin {
     	else
     		getServer().getLogger().log(Level.WARNING, "Attempted to add default permissions, but no group \"default\" exists.");
     }
+    
+    private void writeDefaultConfiguration() 
+    {
+    	HashMap<String, Object> g = new HashMap<String, Object>();
+    	HashMap<String, Object> test = new HashMap<String, Object>();
+    	test.put("permissions.build", true);
+    	test.put("admincmd.test", true);
+    	test.put("blah.blah", true);
+    	g.put("default",test);
+    	g.put("users", test.clone());
+    	g.put("mods", test.clone());
+    	g.put("admins", test.clone());
+    	
+    	
+    	getConfiguration().setProperty("permissions.groups", g);
+    	
+    	getConfiguration().save();
+    	
+    }
+
 
 }
