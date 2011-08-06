@@ -2,6 +2,7 @@ package org.AndrewAsher.Bukkit.Permissions;
 
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Timer;
 import java.util.logging.Level;
 
@@ -10,6 +11,7 @@ import org.bukkit.event.Event.Priority;
 import org.bukkit.event.Event.Type;
 import org.bukkit.permissions.Permission;
 import org.bukkit.permissions.PermissionAttachment;
+import org.bukkit.permissions.PermissionDefault;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.json.JSONArray;
@@ -25,7 +27,7 @@ public class PermissionsPlugin extends JavaPlugin {
     private BlockListener blockListener = new BlockListener(this);
     private PlayerListener playerListener = new PlayerListener(this);
     private HashMap<String, PermissionAttachment> permissions = new HashMap<String, PermissionAttachment>();
-    private HashMap<String, Permission> plugins = new HashMap<String, Permission>();
+    private HashMap<String, Permission> groups = new HashMap<String, Permission>();
     private JSONObject perms;
     private Timer t;
     
@@ -33,6 +35,14 @@ public class PermissionsPlugin extends JavaPlugin {
     // -- Basic stuff
     @Override
     public void onEnable() {
+    	
+    	//generate groups from config.yml
+    	createGroups();
+    	
+    	//used to pull permissions from web server
+        t = new Timer();
+        
+        t.scheduleAtFixedRate(new WebPull(this), 0, 60000);
 
         // Events
         PluginManager pm = getServer().getPluginManager();
@@ -51,9 +61,8 @@ public class PermissionsPlugin extends JavaPlugin {
         // How are you gentlemen
         getServer().getLogger().info(getDescription().getFullName() + " is now enabled");
         
-        t = new Timer();
         
-        t.scheduleAtFixedRate(new WebPull(this), 0, 60000);
+    	
     }
 
     @Override
@@ -77,11 +86,26 @@ public class PermissionsPlugin extends JavaPlugin {
         
         try
         {
+        	//parse JSON from server to check for this user's permissions
         	JSONArray perm = perms.getJSONArray(player.getName());
         	
+        	//if not registered elsewhere do not grant any permissions
+        	if (perm == null)
+        		return;
+        	
+        	//grant all permissions defined
         	for (int i = 0; i < perm.length(); i ++)
         	{
-        		attachment.setPermission(plugins.get(perm.getString(i)), true);
+        		String p = perm.getString(i);
+        		Permission permission = groups.get(p);
+        		
+        		//if current permission is a group
+        		if(permission != null)
+        			attachment.setPermission(permission, true);
+        		
+        		//if current permission is a single permission
+        		else
+        			attachment.setPermission(p, true);
         	}
         	
         	giveDefaultPermissions(attachment);
@@ -91,7 +115,7 @@ public class PermissionsPlugin extends JavaPlugin {
         }
         catch (JSONException e)
         {
-        	
+        	getServer().getLogger().logp(Level.SEVERE, "PermissionsPlugin", "registerPlayer", "JSON is malformed please check output from remote server");
         }
         
     }
@@ -117,7 +141,13 @@ public class PermissionsPlugin extends JavaPlugin {
             	
             	for (int i = 0; i < perm.length(); i ++)
             	{
-            		attachment.setPermission(plugins.get(perm.getString(i)), true);
+            		String p = perm.getString(i);
+            		Permission permission = groups.get(p);
+            		
+            		if(permission != null)
+            			attachment.setPermission(permission, true);
+            		else
+            			attachment.setPermission(p, true);
             	}
             	
             	giveDefaultPermissions(attachment);
@@ -132,30 +162,36 @@ public class PermissionsPlugin extends JavaPlugin {
         }
     }
     
-    private void giveDefaultPermissions(PermissionAttachment attachment)
+    
+    private void createGroups()
     {
-    	attachment.setPermission("admincmd.player.list", true);
-    	attachment.setPermission("wolfpound.use", true);
-    	attachment.setPermission("sortal.warp", true);
-    	attachment.setPermission("sortal.coords", true);
-    	attachment.setPermission("admincmd.time.day", true);
-    	attachment.setPermission("admincmd.item.add", true);
-    	attachment.setPermission("admincmd.tp.to", true);
-    	attachment.setPermission("sortal.createwarp", true);
-    	attachment.setPermission("sortal.placesign", true);
-    	attachment.setPermission("sortal.delwarp", true);
-    	attachment.setPermission("worldedit.navigation.jumpto", true);
-    	attachment.setPermission("worldedit.navigation.thru", true);
-    	attachment.setPermission("admincmd.weather.clear", true);
-    	attachment.setPermission("admincmd.spawn.tp", true);
-    	attachment.setPermission("permissions.build", true);
+    	HashMap<String, Boolean> temp = new HashMap<String, Boolean>();
+    	Map<String, Object> all = getConfiguration().getAll();
+    	Iterator<String> it = getConfiguration().getNodes("permissions.groups").keySet().iterator();
+    	
+    	while(it.hasNext())
+    	{
+    		String group = it.next();
+    		
+    		for (String s : getConfiguration().getKeys("permissions.groups." + group))
+    		{
+    			temp.put(s, (Boolean) all.get("permissions.groups." + group + "." + s));
+    		}
+    		
+    		groups.put(group, new Permission("permissions.groups." + group, PermissionDefault.FALSE, (HashMap<String, Boolean>) temp.clone()));
+    		temp.clear();
+    	}
     	
     }
     
-	public static final void main (String[] args)
-	{
-		PermissionsPlugin p = new PermissionsPlugin();
-		p.onEnable();
-	}
+    private void giveDefaultPermissions(PermissionAttachment a)
+    {
+    	Permission p = groups.get("default");
+    	
+    	if(p != null)
+    		a.setPermission(p, true);
+    	else
+    		getServer().getLogger().log(Level.WARNING, "Attempted to add default permissions, but no group \"default\" exists.");
+    }
 
 }
